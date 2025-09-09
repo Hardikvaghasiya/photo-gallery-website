@@ -11,6 +11,11 @@ const EMAILJS_TEMPLATE_ID_OWNER = "template_y52jg09";
 const EMAILJS_TEMPLATE_ID_AUTOREPLY = "template_ptfrigq";
 const EMAILJS_PUBLIC_KEY = "AnIsR1up7QFE2NzTB";
 
+/* Shared layout helpers (perfectly consistent edges & headings) */
+const WRAP = "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8";
+const SECTION = `${WRAP} py-16 sm:py-20`;
+const H2 = "text-3xl sm:text-4xl font-semibold tracking-tight";
+
 /* A few common calling codes (edit as you like) */
 const COUNTRY_CODES = [
   { label: "Canada/USA (+1)", value: "+1" },
@@ -32,7 +37,7 @@ function useTheme() {
   useEffect(() => {
     const root = document.documentElement;
     const isDark = theme === "dark";
-    root.classList.toggle("dark", isDark); // <-- critical
+    root.classList.toggle("dark", isDark);
     root.style.colorScheme = isDark ? "dark" : "light";
     localStorage.setItem("theme", theme);
   }, [theme]);
@@ -41,13 +46,10 @@ function useTheme() {
 }
 
 function addThemeTransitionOnce() {
-  // Respect reduced motion
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
   const style = document.createElement("style");
   style.setAttribute("data-theme-transition", "true");
   style.textContent = `
-    /* Transition everything briefly while switching themes */
     *:not(img):not(video):not([data-skip-theme-transition]) {
       transition:
         background-color .28s ease,
@@ -58,15 +60,14 @@ function addThemeTransitionOnce() {
     }
   `;
   document.head.appendChild(style);
-  window.setTimeout(() => style.remove(), 350); // cleanup
+  window.setTimeout(() => style.remove(), 350);
 }
 
 function ThemeSwitch({ theme, setTheme }) {
   const onToggle = () => {
-    addThemeTransitionOnce(); // <— add the temp transitions
-    setTheme(theme === "dark" ? "light" : "dark"); // this still flips the .dark class
+    addThemeTransitionOnce();
+    setTheme(theme === "dark" ? "light" : "dark");
   };
-
   return (
     <button
       onClick={onToggle}
@@ -400,31 +401,6 @@ export default function App() {
   const [formError, setFormError] = useState("");
   const { theme, setTheme } = useTheme();
 
-  // ---- Smooth scroll with sticky header offset ----
-  const HEADER_OFFSET = 96; // ~ h-16 + spacing
-  const scrollToHash = (hash) => {
-    const id = (hash || "").replace("#", "");
-    if (!id) return;
-    const el = document.getElementById(id);
-    if (!el) return;
-    const y = el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
-    window.history.pushState(null, "", `#${id}`);
-    window.scrollTo({ top: y, behavior: "smooth" });
-  };
-  const handleAnchor = (e, hash) => {
-    e.preventDefault();
-    setMenuOpen(false);
-    scrollToHash(hash);
-  };
-
-  // Handle direct loads with a hash (e.g., /#contact)
-  useEffect(() => {
-    if (location.hash) {
-      // Wait a tick to ensure layout is ready
-      setTimeout(() => scrollToHash(location.hash), 0);
-    }
-  }, []);
-
   const [loadedCount, setLoadedCount] = useState(0);
   const needLoaded = Math.min(4, visibleCount);
   const initialLoading = loadedCount < needLoaded;
@@ -450,8 +426,7 @@ export default function App() {
 
   const openLightbox = (i) => setLightbox({ open: true, index: i });
   const closeLightbox = () => setLightbox({ open: false, index: 0 });
-  const prev = () =>
-    setLightbox((l) => ({ open: true, index: (l.index - 1 + photos.length) % photos.length }));
+  const prev = () => setLightbox((l) => ({ open: true, index: (l.index - 1 + photos.length) % photos.length }));
   const next = () => setLightbox((l) => ({ open: true, index: (l.index + 1) % photos.length }));
 
   const displayed = photos.slice(0, visibleCount);
@@ -468,12 +443,7 @@ export default function App() {
       el.setAttribute("content", content);
     };
     ensureMeta('meta[property="og:title"]', "property", "og:title", "Dakoda Photography");
-    ensureMeta(
-      'meta[property="og:description"]',
-      "property",
-      "og:description",
-      "Capturing the details most people walk past."
-    );
+    ensureMeta('meta[property="og:description"]', "property", "og:description", "Capturing the details most people walk past.");
     ensureMeta('meta[property="og:type"]', "property", "og:type", "website");
     ensureMeta('meta[property="og:url"]', "property", "og:url", window.location.href);
     ensureMeta('meta[property="og:image"]', "property", "og:image", `${window.location.origin}/gallery/img-01.jpg`);
@@ -501,36 +471,20 @@ export default function App() {
     // honeypots
     const honey1 = (fd.get("website") || "").toString().trim();
     const honey2 = (fd.get("subject2") || "").toString().trim();
-    if (honey1 || honey2) {
-      setSending(false);
-      setSent("spam");
-      return;
-    }
+    if (honey1 || honey2) { setSending(false); setSent("spam"); return; }
 
     // time gate
     const started = Number(fd.get("form_started_at") || formStartRef.current);
     const elapsedSec = (Date.now() - started) / 1000;
-    if (elapsedSec < 3) {
-      setSending(false);
-      setSent("spam");
-      return;
-    }
+    if (elapsedSec < 3) { setSending(false); setSent("spam"); return; }
 
     // nonce
     const nonce = (fd.get("__nonce") || "").toString();
-    if (nonce !== nonceRef.current) {
-      setSending(false);
-      setSent("spam");
-      return;
-    }
+    if (nonce !== nonceRef.current) { setSending(false); setSent("spam"); return; }
 
     // rate-limit
     const last = Number(localStorage.getItem("last_submit_ts") || 0);
-    if (Date.now() - last < 30_000) {
-      setSending(false);
-      setSent("rate");
-      return;
-    }
+    if (Date.now() - last < 30_000) { setSending(false); setSent("rate"); return; }
 
     // validations
     const email = (fd.get("email") || "").toString().trim();
@@ -600,25 +554,15 @@ export default function App() {
     <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 scroll-smooth transition-colors">
       {/* Navbar */}
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur border-b border-zinc-200 dark:border-zinc-800 transition-colors">
-        <nav className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between">
-          <a href="#home" onClick={(e) => handleAnchor(e, "#home")} className="font-semibold text-lg">
-            Dakoda Photography
-          </a>
+        <nav className={`${WRAP} h-16 flex items-center justify-between`}>
+          <a href="#home" className="font-semibold text-lg">Dakoda Photography</a>
 
           {/* Desktop links */}
           <div className="hidden sm:flex gap-6 text-sm">
-            <a href="#work" onClick={(e) => handleAnchor(e, "#work")} className="hover:opacity-80">
-              Work
-            </a>
-            <a href="#about" onClick={(e) => handleAnchor(e, "#about")} className="hover:opacity-80">
-              About
-            </a>
-            <a href="#pricing" onClick={(e) => handleAnchor(e, "#pricing")} className="hover:opacity-80">
-              Pricing
-            </a>
-            <a href="#contact" onClick={(e) => handleAnchor(e, "#contact")} className="hover:opacity-80">
-              Contact
-            </a>
+            <a href="#work" className="hover:opacity-80">Work</a>
+            <a href="#about" className="hover:opacity-80">About</a>
+            <a href="#pricing" className="hover:opacity-80">Pricing</a>
+            <a href="#contact" className="hover:opacity-80">Contact</a>
           </div>
 
           <div className="flex items-center gap-2">
@@ -638,18 +582,15 @@ export default function App() {
         </nav>
 
         {/* Mobile menu */}
-        <div
-          className={`${menuOpen ? "block" : "hidden"
-            } sm:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition-colors`}
-        >
-          <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-3 text-sm">
+        <div className={`${menuOpen ? "block" : "hidden"} sm:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition-colors`}>
+          <div className={`${WRAP} py-3 flex flex-col gap-3 text-sm`}>
             {[
               ["#work", "Work"],
               ["#about", "About"],
               ["#pricing", "Pricing"],
               ["#contact", "Contact"],
             ].map(([href, label]) => (
-              <a key={href} href={href} className="py-1" onClick={(e) => handleAnchor(e, href)}>
+              <a key={href} href={href} className="py-1" onClick={() => setMenuOpen(false)}>
                 {label}
               </a>
             ))}
@@ -658,9 +599,11 @@ export default function App() {
       </header>
 
       {/* Hero */}
-      <section id="home" className="scroll-mt-24 mx-auto max-w-7xl px-4 py-20">
+      <section id="home" className={`${SECTION} scroll-mt-24`}>
         <Reveal>
-          <h1 className="text-4xl sm:text-5xl font-bold">Capturing the Details Most People Walk Past</h1>
+          <h1 className="text-4xl sm:text-5xl font-bold">
+            Capturing the Details Most People Walk Past
+          </h1>
         </Reveal>
         <Reveal delay={0.06}>
           <p className="mt-4 text-zinc-600 dark:text-zinc-300 text-lg max-w-2xl">
@@ -674,11 +617,10 @@ export default function App() {
               href="#contact"
               className="rounded-full bg-zinc-900 text-white px-5 py-2.5 dark:bg-zinc-100 dark:text-zinc-900 transition-colors"
             >
-              Call Now
+              Contact Now
             </a>
             <a
               href="#work"
-              onClick={(e) => handleAnchor(e, "#work")}
               className="rounded-full border border-zinc-300 px-5 py-2.5 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800 transition-colors"
             >
               View Gallery
@@ -688,11 +630,9 @@ export default function App() {
       </section>
 
       {/* Work / Gallery */}
-      <section id="work" className="scroll-mt-24 mx-auto max-w-7xl px-4 py-12">
+      <section id="work" className={`${SECTION} scroll-mt-24`}>
         <div className="flex items-end justify-between">
-          <Reveal>
-            <h2 className="text-3xl font-semibold">Work</h2>
-          </Reveal>
+          <Reveal><h2 className={H2}>Work</h2></Reveal>
         </div>
 
         {initialLoading && (
@@ -738,46 +678,27 @@ export default function App() {
 
       {/* Lightbox */}
       {lightbox.open && (
-        <div
-          className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-        >
-          <button
-            onClick={closeLightbox}
-            className="absolute top-4 right-4 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm"
-          >
+        <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+          <button onClick={closeLightbox} className="absolute top-4 right-4 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm">
             Close
           </button>
-          <button
-            onClick={prev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm"
-          >
+          <button onClick={prev} className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm">
             ← Prev
           </button>
-          <img
-            src={photos[lightbox.index]}
-            alt="Large view"
-            className="max-h-[85vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
-          />
-          <button
-            onClick={next}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm"
-          >
+          <img src={photos[lightbox.index]} alt="Large view" className="max-h-[85vh] max-w-[90vw] object-contain rounded-xl shadow-2xl" />
+          <button onClick={next} className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm">
             Next →
           </button>
         </div>
       )}
 
       {/* About */}
-      <section id="about" className="scroll-mt-24 mx-auto max-w-5xl px-4 py-12">
-        <Reveal>
-          <h2 className="text-3xl font-semibold text-center md:text-left">About Me</h2>
-        </Reveal>
+      <section id="about" className={`${SECTION} scroll-mt-24`}>
+        <Reveal><h2 className={H2}>About Me</h2></Reveal>
         <Reveal delay={0.06}>
-          <div className="mt-6 grid gap-8 items-start justify-items-center md:grid-cols-[280px,1fr] md:justify-items-start">
+          <div className="mt-8 grid gap-10 items-center md:grid-cols-[minmax(220px,280px),1fr]">
             <PhotoLens src="/gallery/profile-picture.jpg" alt="Dakoda – Portrait" size={280} speed={20} />
-            <div className="space-y-4 text-zinc-700 dark:text-zinc-300 leading-relaxed text-center md:text-left">
+            <div className="space-y-4 text-zinc-700 dark:text-zinc-300 leading-relaxed">
               <p>
                 I’m <span className="font-semibold">Dakoda</span> — a photographer obsessed with the little details most
                 people walk past. From sweeping landscapes to macro textures, I’m drawn to the moments that make the
@@ -798,18 +719,14 @@ export default function App() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="scroll-mt-24 mx-auto max-w-6xl px-4 py-12">
+      <section id="pricing" className={`${SECTION} scroll-mt-24`}>
         <div className="flex items-center justify-between gap-6">
-          <Reveal>
-            <h2 className="text-3xl font-semibold">Pricing</h2>
-          </Reveal>
-          <Reveal delay={0.05}>
-            <CameraLens size={96} />
-          </Reveal>
+          <Reveal><h2 className={H2}>Pricing</h2></Reveal>
+          <Reveal delay={0.05}><div className="hidden sm:block self-center"><CameraLens size={96} /></div></Reveal>
         </div>
 
         <Reveal delay={0.06}>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-300">
+          <p className="mt-3 text-zinc-600 dark:text-zinc-300">
             Canvas prints are made in Canada and ship within 2–4 business days. Prices exclude taxes. For promotions or
             multi-piece discounts, reach out via the contact form below.
           </p>
@@ -817,11 +734,11 @@ export default function App() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           <Reveal>
-            <div className="rounded-2xl border bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6 shadow-sm transition-colors">
+            <div className="h-full rounded-2xl border bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6 shadow-sm transition-colors flex flex-col">
               <p className="text-sm text-zinc-500 dark:text-zinc-400">Canvas Print</p>
               <h3 className="mt-1 text-xl font-semibold">24×36</h3>
               <p className="mt-3 text-2xl font-bold">$249</p>
-              <ul className="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-300">
+              <ul className="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-300 flex-1">
                 <li>• Ready-to-hang gallery wrap</li>
                 <li>• Archival inks, satin finish</li>
                 <li>• Signed on request</li>
@@ -830,13 +747,13 @@ export default function App() {
           </Reveal>
 
           <Reveal delay={0.05}>
-            <div className="rounded-2xl border bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6 shadow-sm ring-2 ring-zinc-900/10 dark:ring-white/10 transition-colors">
+            <div className="h-full rounded-2xl border bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6 shadow-sm ring-2 ring-zinc-900/10 dark:ring-white/10 transition-colors flex flex-col">
               <div className="inline-block text-[11px] uppercase tracking-wide bg-zinc-900 text-white px-2 py-0.5 rounded-full">
                 Popular
               </div>
               <h3 className="mt-2 text-xl font-semibold">30×40</h3>
               <p className="mt-3 text-2xl font-bold">$349</p>
-              <ul className="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-300">
+              <ul className="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-300 flex-1">
                 <li>• Our best room-friendly size</li>
                 <li>• Thick 1.5″ stretcher bars</li>
                 <li>• Hardware pre-installed</li>
@@ -845,11 +762,11 @@ export default function App() {
           </Reveal>
 
           <Reveal delay={0.1}>
-            <div className="rounded-2xl border bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6 shadow-sm transition-colors">
+            <div className="h-full rounded-2xl border bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6 shadow-sm transition-colors flex flex-col">
               <p className="text-sm text-zinc-500 dark:text-zinc-400">Large Format</p>
               <h3 className="mt-1 text-xl font-semibold">36×48</h3>
               <p className="mt-3 text-2xl font-bold">$549</p>
-              <ul className="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-300">
+              <ul className="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-300 flex-1">
                 <li>• Statement piece for big walls</li>
                 <li>• Color-calibrated & inspected</li>
                 <li>• Safe packaging & insured ship</li>
@@ -860,11 +777,9 @@ export default function App() {
       </section>
 
       {/* Contact */}
-      <section id="contact" className="scroll-mt-24 mx-auto max-w-5xl px-4 py-12">
-        <Reveal>
-          <h2 className="text-3xl font-semibold">Contact</h2>
-        </Reveal>
-        <div className="mt-6 grid gap-8 lg:grid-cols-[1fr,1fr]">
+      <section id="contact" className={`${SECTION} scroll-mt-24`}>
+        <Reveal><h2 className={H2}>Contact</h2></Reveal>
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr,1fr]">
           <Reveal>
             <div className="rounded-2xl border bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6 shadow-sm transition-colors">
               <h3 className="text-xl font-semibold">Let’s work together</h3>
@@ -886,8 +801,10 @@ export default function App() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 text-center py-6 text-sm text-zinc-500 dark:text-zinc-400 transition-colors">
-        © {new Date().getFullYear()} Dakoda Photography. All rights reserved.
+      <footer className="border-t border-zinc-200 dark:border-zinc-800">
+        <div className={`${WRAP} text-center py-6 text-sm text-zinc-500 dark:text-zinc-400 transition-colors`}>
+          © {new Date().getFullYear()} Dakoda Photography. All rights reserved.
+        </div>
       </footer>
 
       <BackToTop />
@@ -896,7 +813,14 @@ export default function App() {
 }
 
 /* Split out the form JSX to keep main render tidy */
-function ContactForm({ sendingState, sentState, formErrorState, handleEmailSubmit, formStartRef, nonceRef }) {
+function ContactForm({
+  sendingState,
+  sentState,
+  formErrorState,
+  handleEmailSubmit,
+  formStartRef,
+  nonceRef,
+}) {
   const [sending] = sendingState;
   const [sent] = sentState;
   const [formError] = formErrorState;
@@ -963,9 +887,7 @@ function ContactForm({ sendingState, sentState, formErrorState, handleEmailSubmi
               className="rounded-lg border px-3 py-2 w-40 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors"
             >
               {COUNTRY_CODES.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
+                <option key={c.value} value={c.value}>{c.label}</option>
               ))}
             </select>
             <input
@@ -1011,15 +933,9 @@ function ContactForm({ sendingState, sentState, formErrorState, handleEmailSubmi
           <span className="text-sm" aria-live="polite">
             {formError && <span className="text-red-500">{formError}</span>}
             {!formError && sent === "ok" && <span className="text-green-500">Thanks! Your message was sent.</span>}
-            {!formError && sent === "err" && (
-              <span className="text-red-500">Sorry, something went wrong. Please try again.</span>
-            )}
-            {!formError && sent === "spam" && (
-              <span className="text-amber-500">Please take a moment and try again.</span>
-            )}
-            {!formError && sent === "rate" && (
-              <span className="text-amber-500">Please wait 30s before sending another message.</span>
-            )}
+            {!formError && sent === "err" && <span className="text-red-500">Sorry, something went wrong. Please try again.</span>}
+            {!formError && sent === "spam" && <span className="text-amber-500">Please take a moment and try again.</span>}
+            {!formError && sent === "rate" && <span className="text-amber-500">Please wait 30s before sending another message.</span>}
           </span>
         </div>
       </form>
