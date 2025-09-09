@@ -68,13 +68,40 @@ function ThemeSwitch({ theme, setTheme }) {
     addThemeTransitionOnce();
     setTheme(theme === "dark" ? "light" : "dark");
   };
+
+  const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+
   return (
     <button
       onClick={onToggle}
-      className="text-sm rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-      aria-label="Toggle color theme"
+      aria-label={label}
+      title={label}
+      className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors active:scale-95"
     >
-      {theme === "dark" ? "Light mode" : "Dark mode"}
+      {/* Sun (shown in light) */}
+      <svg
+        viewBox="0 0 24 24"
+        className="h-5 w-5 text-zinc-800 dark:text-zinc-200 transition-opacity duration-200 opacity-100 dark:opacity-0"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="4.25" />
+        <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.05 5.05l1.4 1.4M17.55 17.55l1.4 1.4M5.05 18.95l1.4-1.4M17.55 6.45l1.4-1.4" />
+      </svg>
+
+      {/* Moon (shown in dark) */}
+      <svg
+        viewBox="0 0 24 24"
+        className="absolute h-5 w-5 text-zinc-200 transition-opacity duration-200 opacity-0 dark:opacity-100"
+        fill="currentColor"
+      >
+        <path d="M21 12.8A9 9 0 1111.2 3a7.2 7.2 0 009.8 9.8z" />
+      </svg>
+
+      <span className="sr-only">{label}</span>
     </button>
   );
 }
