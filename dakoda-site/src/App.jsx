@@ -851,7 +851,7 @@ export default function App() {
             <span className="inline-flex items-center gap-1 text-xs sm:text-sm">
               <span className="opacity-75">Design &amp; Development by</span>
               <a
-                href="https://your-portfolio-url.example"
+                href="https://www.linkedin.com/in/hardik-d-vaghasiya/"
                 target="_blank"
                 rel="noopener noreferrer nofollow"
                 className="font-medium text-zinc-700 dark:text-zinc-200 hover:underline"
