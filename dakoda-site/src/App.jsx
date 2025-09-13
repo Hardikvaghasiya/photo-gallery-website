@@ -3,17 +3,17 @@ import { motion, useAnimation, useInView } from "framer-motion";
 import emailjs from "@emailjs/browser";
 
 /* ========================= Site / Email constants ========================= */
-const PHONE = "+1-555-000-0000"; // TODO: replace with the real number
+const PHONE = "+1-555-000-0000"; // (not shown in hero anymore; keep if you want to use)
 
-// EmailJS – REPLACE with your actual IDs/keys
-const EMAILJS_SERVICE_ID = "service_v6dbxx8";
-const EMAILJS_TEMPLATE_ID_OWNER = "template_y52jg09";
-const EMAILJS_TEMPLATE_ID_AUTOREPLY = "template_ptfrigq";
-const EMAILJS_PUBLIC_KEY = "AnIsR1up7QFE2NzTB";
+const EMAILJS_SERVICE_ID = "service_r0qhgwq";
+const EMAILJS_TEMPLATE_ID_OWNER = "template_unqnaza";
+const EMAILJS_TEMPLATE_ID_AUTOREPLY = "template_tonxwcg";
+const EMAILJS_PUBLIC_KEY = "XVqqYKbFQzIrSo5VH";
 
-/* Shared layout helpers (perfectly consistent edges & headings) */
+/* Shared layout helpers (consistent edges & headings) */
 const WRAP = "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8";
-const SECTION = `${WRAP} py-16 sm:py-20`;
+/* Tighter spacing on small screens */
+const SECTION = `${WRAP} py-10 sm:py-14 md:py-20`;
 const H2 = "text-3xl sm:text-4xl font-semibold tracking-tight";
 
 /* A few common calling codes (edit as you like) */
@@ -432,6 +432,10 @@ export default function App() {
   const needLoaded = Math.min(4, visibleCount);
   const initialLoading = loadedCount < needLoaded;
 
+  // Footer credit toggle (set VITE_SHOW_CREDIT=false to hide)
+  const showCredit =
+    String(import.meta.env?.VITE_SHOW_CREDIT ?? "true").toLowerCase() !== "false";
+
   useEffect(() => {
     const close = () => setMenuOpen(false);
     window.addEventListener("hashchange", close);
@@ -453,7 +457,8 @@ export default function App() {
 
   const openLightbox = (i) => setLightbox({ open: true, index: i });
   const closeLightbox = () => setLightbox({ open: false, index: 0 });
-  const prev = () => setLightbox((l) => ({ open: true, index: (l.index - 1 + photos.length) % photos.length }));
+  const prev = () =>
+    setLightbox((l) => ({ open: true, index: (l.index - 1 + photos.length) % photos.length }));
   const next = () => setLightbox((l) => ({ open: true, index: (l.index + 1) % photos.length }));
 
   const displayed = photos.slice(0, visibleCount);
@@ -470,7 +475,12 @@ export default function App() {
       el.setAttribute("content", content);
     };
     ensureMeta('meta[property="og:title"]', "property", "og:title", "Dakoda Photography");
-    ensureMeta('meta[property="og:description"]', "property", "og:description", "Capturing the details most people walk past.");
+    ensureMeta(
+      'meta[property="og:description"]',
+      "property",
+      "og:description",
+      "Capturing the details most people walk past."
+    );
     ensureMeta('meta[property="og:type"]', "property", "og:type", "website");
     ensureMeta('meta[property="og:url"]', "property", "og:url", window.location.href);
     ensureMeta('meta[property="og:image"]', "property", "og:image", `${window.location.origin}/gallery/img-01.jpg`);
@@ -498,20 +508,36 @@ export default function App() {
     // honeypots
     const honey1 = (fd.get("website") || "").toString().trim();
     const honey2 = (fd.get("subject2") || "").toString().trim();
-    if (honey1 || honey2) { setSending(false); setSent("spam"); return; }
+    if (honey1 || honey2) {
+      setSending(false);
+      setSent("spam");
+      return;
+    }
 
     // time gate
     const started = Number(fd.get("form_started_at") || formStartRef.current);
     const elapsedSec = (Date.now() - started) / 1000;
-    if (elapsedSec < 3) { setSending(false); setSent("spam"); return; }
+    if (elapsedSec < 3) {
+      setSending(false);
+      setSent("spam");
+      return;
+    }
 
     // nonce
     const nonce = (fd.get("__nonce") || "").toString();
-    if (nonce !== nonceRef.current) { setSending(false); setSent("spam"); return; }
+    if (nonce !== nonceRef.current) {
+      setSending(false);
+      setSent("spam");
+      return;
+    }
 
     // rate-limit
     const last = Number(localStorage.getItem("last_submit_ts") || 0);
-    if (Date.now() - last < 30_000) { setSending(false); setSent("rate"); return; }
+    if (Date.now() - last < 30_000) {
+      setSending(false);
+      setSent("rate");
+      return;
+    }
 
     // validations
     const email = (fd.get("email") || "").toString().trim();
@@ -582,7 +608,9 @@ export default function App() {
       {/* Navbar */}
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur border-b border-zinc-200 dark:border-zinc-800 transition-colors">
         <nav className={`${WRAP} h-16 flex items-center justify-between`}>
-          <a href="#home" className="font-semibold text-lg">Dakoda Photography</a>
+          <a href="#home" className="font-semibold text-lg">
+            Dakoda Photography
+          </a>
 
           {/* Desktop links */}
           <div className="hidden sm:flex gap-6 text-sm">
@@ -609,17 +637,12 @@ export default function App() {
         </nav>
 
         {/* Mobile menu */}
-        <div className={`${menuOpen ? "block" : "hidden"} sm:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition-colors`}>
+        <div
+          className={`${menuOpen ? "block" : "hidden"} sm:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition-colors`}
+        >
           <div className={`${WRAP} py-3 flex flex-col gap-3 text-sm`}>
-            {[
-              ["#work", "Work"],
-              ["#about", "About"],
-              ["#pricing", "Pricing"],
-              ["#contact", "Contact"],
-            ].map(([href, label]) => (
-              <a key={href} href={href} className="py-1" onClick={() => setMenuOpen(false)}>
-                {label}
-              </a>
+            {[["#work", "Work"], ["#about", "About"], ["#pricing", "Pricing"], ["#contact", "Contact"]].map(([href, label]) => (
+              <a key={href} href={href} className="py-1" onClick={() => setMenuOpen(false)}>{label}</a>
             ))}
           </div>
         </div>
@@ -628,9 +651,7 @@ export default function App() {
       {/* Hero */}
       <section id="home" className={`${SECTION} scroll-mt-24`}>
         <Reveal>
-          <h1 className="text-4xl sm:text-5xl font-bold">
-            Capturing the Details Most People Walk Past
-          </h1>
+          <h1 className="text-4xl sm:text-5xl font-bold">Capturing the Details Most People Walk Past</h1>
         </Reveal>
         <Reveal delay={0.06}>
           <p className="mt-4 text-zinc-600 dark:text-zinc-300 text-lg max-w-2xl">
@@ -676,7 +697,7 @@ export default function App() {
           </div>
         )}
 
-        <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {displayed.map((src, i) => (
             <GalleryImage
               key={src}
@@ -691,7 +712,7 @@ export default function App() {
 
         {visibleCount < photos.length && (
           <Reveal delay={0.05}>
-            <div className="mt-8 flex justify-center">
+            <div className="mt-6 sm:mt-8 flex justify-center">
               <button
                 onClick={() => setVisibleCount(photos.length)}
                 className="rounded-full bg-zinc-900 text-white px-5 py-2.5 text-sm hover:opacity-90"
@@ -706,24 +727,18 @@ export default function App() {
       {/* Lightbox */}
       {lightbox.open && (
         <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-          <button onClick={closeLightbox} className="absolute top-4 right-4 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm">
-            Close
-          </button>
-          <button onClick={prev} className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm">
-            ← Prev
-          </button>
+          <button onClick={closeLightbox} className="absolute top-4 right-4 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm">Close</button>
+          <button onClick={prev} className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm">← Prev</button>
           <img src={photos[lightbox.index]} alt="Large view" className="max-h-[85vh] max-w-[90vw] object-contain rounded-xl shadow-2xl" />
-          <button onClick={next} className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm">
-            Next →
-          </button>
+          <button onClick={next} className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-sm">Next →</button>
         </div>
       )}
 
-      {/* About */}
+      {/* About (portrait centered on small screens) */}
       <section id="about" className={`${SECTION} scroll-mt-24`}>
         <Reveal><h2 className={H2}>About Me</h2></Reveal>
         <Reveal delay={0.06}>
-          <div className="mt-8 grid gap-10 items-center md:grid-cols-[minmax(220px,280px),1fr]">
+          <div className="mt-6 sm:mt-8 grid gap-8 sm:gap-10 items-start md:items-center justify-items-center md:justify-items-start md:grid-cols-[minmax(220px,280px),1fr]">
             <PhotoLens src="/gallery/profile-picture.jpg" alt="Dakoda – Portrait" size={280} speed={20} />
             <div className="space-y-4 text-zinc-700 dark:text-zinc-300 leading-relaxed">
               <p>
@@ -753,13 +768,13 @@ export default function App() {
         </div>
 
         <Reveal delay={0.06}>
-          <p className="mt-3 text-zinc-600 dark:text-zinc-300">
+          <p className="mt-2 sm:mt-3 text-zinc-600 dark:text-zinc-300">
             Canvas prints are made in Canada and ship within 2–4 business days. Prices exclude taxes. For promotions or
             multi-piece discounts, reach out via the contact form below.
           </p>
         </Reveal>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <div className="mt-6 sm:mt-8 grid gap-4 sm:grid-cols-3">
           <Reveal>
             <div className="h-full rounded-2xl border bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6 shadow-sm transition-colors flex flex-col">
               <p className="text-sm text-zinc-500 dark:text-zinc-400">Canvas Print</p>
@@ -806,7 +821,7 @@ export default function App() {
       {/* Contact */}
       <section id="contact" className={`${SECTION} scroll-mt-24`}>
         <Reveal><h2 className={H2}>Contact</h2></Reveal>
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr,1fr]">
+        <div className="mt-6 sm:mt-8 grid gap-6 lg:gap-8 lg:grid-cols-[1fr,1fr]">
           <Reveal>
             <div className="rounded-2xl border bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6 shadow-sm transition-colors">
               <h3 className="text-xl font-semibold">Let’s work together</h3>
@@ -828,9 +843,23 @@ export default function App() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-200 dark:border-zinc-800">
-        <div className={`${WRAP} text-center py-6 text-sm text-zinc-500 dark:text-zinc-400 transition-colors`}>
-          © {new Date().getFullYear()} Dakoda Photography. All rights reserved.
+      <footer className="border-t border-zinc-200 dark:border-zinc-800 transition-colors">
+        <div className="mx-auto max-w-7xl px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+          <span>© {new Date().getFullYear()} Dakoda Photography. All rights reserved.</span>
+
+          {showCredit && (
+            <span className="inline-flex items-center gap-1 text-xs sm:text-sm">
+              <span className="opacity-75">Design &amp; Development by</span>
+              <a
+                href="https://your-portfolio-url.example"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="font-medium text-zinc-700 dark:text-zinc-200 hover:underline"
+              >
+                Hardik D. Vaghasiya
+              </a>
+            </span>
+          )}
         </div>
       </footer>
 
