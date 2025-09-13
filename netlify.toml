@@ -1,0 +1,14 @@
+# netlify.toml (at the repo root)
+[build]
+  base    = "dakoda-site"   # <- your app folder
+  command = "npm run build"
+  publish = "dist"
+
+  # Optional but helpful:
+  environment = { NODE_VERSION = "18" }
+
+# Single-page app fallback (Vite)
+[[redirects]]
+  from = "/*"
+  to   = "/index.html"
+  status = 200
